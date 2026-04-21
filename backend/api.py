@@ -28,7 +28,7 @@ app = FastAPI(title="WasteHunters API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # Allowing all origins is best for development
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"], # Allows GET, POST, OPTIONS, etc.
     allow_headers=["*"], # Allows all headers like Content-Type
 )
