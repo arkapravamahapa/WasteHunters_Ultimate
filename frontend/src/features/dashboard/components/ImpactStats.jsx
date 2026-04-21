@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 // 🌟 Import Config
-import { API_BASE_URL } from '../../../../api_config';
+import { API_BASE_URL } from '../../../api_config';
 
 const ImpactStats = ({ totalKg }) => {
     const [chartData, setChartData] = useState([]);

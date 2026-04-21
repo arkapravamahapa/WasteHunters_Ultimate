@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Gift, ArrowRight, CheckCircle, Lock } from 'lucide-react';
 // 🌟 Import Config
-import { API_BASE_URL } from '../../../../api_config';
-
+import { API_BASE_URL } from '../../../api_config';
 const RewardCard = ({ type, title, desc, cost, color, currentBalance, onRedeemSuccess }) => {
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [isRedeemed, setIsRedeemed] = useState(false);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Users, Calendar, MapPin, ArrowRight, CheckCircle } from 'lucide-react';
 // 🌟 STEP 1: Import the central config (Note the path depth)
-import { API_BASE_URL } from '../../../../api_config';
+import { API_BASE_URL } from '../../../api_config';
 
 const CampaignCard = ({ id, title, location, date, volunteers, max_volunteers, creator, onJoin, isAlreadyJoined }) => {
   const [isJoining, setIsJoining] = useState(false);

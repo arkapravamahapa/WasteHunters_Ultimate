@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, Clock } from 'lucide-react';
 // 🌟 Import Config
-import { API_BASE_URL } from '../../../../api_config';
+import { API_BASE_URL } from '../../../api_config';
 
 const LiveFeedTicker = () => {
     const [feedData, setFeedData] = useState([]);
