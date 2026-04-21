@@ -1,7 +1,8 @@
 import React from 'react';
 import { ArrowLeft, Award, Zap, Leaf, ShieldAlert } from 'lucide-react';
 
-const AIAnalysisResult = ({ image, result, onReset }) => {
+// 🌟 FIXED: Added onClaim to the incoming props
+const AIAnalysisResult = ({ image, result, onReset, onClaim }) => {
     if (result.error) {
         return (
             <div className="flex flex-col items-center justify-center h-full text-center mt-20">
@@ -78,12 +79,12 @@ const AIAnalysisResult = ({ image, result, onReset }) => {
                     </div>
                 )}
 
-                {/* 🌟 FIXED: Added onClick to navigate to your map */}
+                {/* 🌟 FIXED: Changed from window.location href to the onClaim function */}
                 <button 
-                    onClick={() => window.location.href = '/live-map'}
+                    onClick={onClaim}
                     className="w-full bg-waste-500 hover:bg-emerald-500 text-dark-900 font-black text-lg py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]"
                 >
-                    Find Drop-off Hub to Claim Tokens
+                    Drop off & Claim Tokens
                 </button>
             </div>
         </div>

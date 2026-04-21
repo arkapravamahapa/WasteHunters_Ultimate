@@ -211,7 +211,7 @@ async def get_stats(db: Session = Depends(get_db)):
 @app.post("/api/claim-tokens")
 async def claim_tokens(payload: dict, db: Session = Depends(get_db)):
     user = db.query(DBUser).filter(DBUser.id == "user_123").first()
-    tokens_to_add = payload.get("tokens", 0)
+    tokens_to_add = int(payload.get("tokens", 0))
     user.green_tokens += tokens_to_add
     db.commit()
     return {"status": "success", "new_balance": user.green_tokens}

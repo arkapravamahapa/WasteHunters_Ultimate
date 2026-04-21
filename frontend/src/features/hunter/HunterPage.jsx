@@ -20,14 +20,13 @@ const HunterPage = () => {
         formData.append('file', blob, 'capture.jpg');
 
         const response = await fetch(`${API_BASE_URL}/api/classify`, {
-    method: 'POST',
-    body: formData, // No headers needed for FormData, the browser handles it!
-});
+            method: 'POST',
+            body: formData, 
+        });
 
         const data = await response.json();
         
         if (data.status === "success") {
-            // SAFETY CHECK: Ensure Gemini's response is treated as a JavaScript object
             const parsedResult = typeof data.classification === 'string' 
                 ? JSON.parse(data.classification) 
                 : data.classification;
@@ -51,12 +50,37 @@ const HunterPage = () => {
     setAnalyzing(false);
   };
 
+  // 🌟 NEW: Added the safe claim function here!
+  const handleClaim = async () => {
+      if (!result || !result.tokens) return;
+
+      try {
+          const response = await fetch(`${API_BASE_URL}/api/claim-tokens`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ tokens: parseInt(result.tokens) }) 
+          });
+
+          if (response.ok) {
+              // Show success message first
+              alert(`🎉 Success! ${result.tokens} tokens have been added to your account.`);
+              // Reset safely after the alert is dismissed
+              handleReset();
+          } else {
+              alert("❌ Something went wrong claiming your tokens.");
+          }
+      } catch (error) {
+          console.error("Error claiming tokens:", error);
+          alert("❌ Network error. Please try again.");
+      }
+  };
+
   return (
     <div className="p-8 h-[calc(100vh-80px)] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="mb-8">
             <h1 className="text-3xl font-bold text-white tracking-tight">Hunter Tool</h1>
-            <p className="text-gray-400 mt-1">AI-powered e-waste classification using Gemini 3.1 Flash.</p>
+            <p className="text-gray-400 mt-1">AI-powered e-waste classification using Gemini 2.0 Flash.</p>
         </div>
 
         {/* Content Area */}
@@ -83,6 +107,7 @@ const HunterPage = () => {
                     image={image} 
                     result={result} 
                     onReset={handleReset} 
+                    onClaim={handleClaim} // 🌟 Passed the function down to the result component
                 />
             )}
         </div>
