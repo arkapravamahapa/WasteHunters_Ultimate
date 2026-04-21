@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModuleCard from './components/ModuleCard';
 import { Zap, Loader2, X, CheckCircle, Trophy } from 'lucide-react';
+import { API_BASE_URL } from '../../api_config';
 
 const EducationPage = () => {
   const [lessons, setLessons] = useState([]);
@@ -11,14 +12,18 @@ const EducationPage = () => {
   const [masterclassCompleted, setMasterclassCompleted] = useState(false);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/lessons')
+    // 🌟 Using backticks and our global variable
+    fetch(`${API_BASE_URL}/api/lessons`)
       .then(res => res.json())
       .then(data => { 
         setLessons(data); 
         setLoading(false); 
+      })
+      .catch(err => {
+        console.error("Error fetching lessons:", err);
+        setLoading(false);
       });
   }, []);
-
   const handleClaimMasterclass = async () => {
     const res = await fetch('http://127.0.0.1:8000/api/claim-tokens', {
       method: 'POST',

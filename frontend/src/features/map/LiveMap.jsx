@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { HeatmapLayer } from 'react-leaflet-heatmap-layer-v3'; // 🔥 NEW: Imported Heatmap
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { API_BASE_URL } from '../../api_config';
 
 // Fix for default Leaflet icon missing in React
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
@@ -40,21 +41,24 @@ const LiveMap = () => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const fetchCenters = async () => {
-            try {
-                const response = await fetch("http://localhost:8000/api/centers");
-                if (!response.ok) throw new Error("Failed to fetch data");
-                const data = await response.json();
-                setRecyclingCenters(data); 
-            } catch (error) {
-                console.error("Error connecting to backend:", error);
-                setStatus("Backend offline. Cannot load centers.");
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchCenters();
-    }, []); 
+    const fetchCenters = async () => {
+        try {
+            // 🌟 Use backticks `` and remove the "..." placeholder
+            const response = await fetch(`${API_BASE_URL}/api/centers`);
+            
+            if (!response.ok) throw new Error("Failed to fetch data");
+            
+            const data = await response.json();
+            setRecyclingCenters(data); 
+        } catch (error) {
+            console.error("Error connecting to backend:", error);
+            setStatus("Backend offline. Cannot load centers.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    fetchCenters();
+}, []);
 
     const handleCenterClick = (center) => {
         setMapCenter([center.lat, center.lng]);

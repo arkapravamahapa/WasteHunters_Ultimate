@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import CameraCapture from './components/CameraCapture';
 import AIAnalysisResult from './components/AIAnalysisResult';
 import { Loader2 } from 'lucide-react';
+import { API_BASE_URL } from '../../api_config';
 
 const HunterPage = () => {
   const [image, setImage] = useState(null);
@@ -18,10 +19,10 @@ const HunterPage = () => {
         const formData = new FormData();
         formData.append('file', blob, 'capture.jpg');
 
-        const response = await fetch('http://127.0.0.1:8000/api/classify', {
-            method: 'POST',
-            body: formData,
-        });
+        const response = await fetch(`${API_BASE_URL}/api/classify`, {
+    method: 'POST',
+    body: formData, // No headers needed for FormData, the browser handles it!
+});
 
         const data = await response.json();
         
