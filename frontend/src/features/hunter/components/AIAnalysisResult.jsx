@@ -1,99 +1,93 @@
-import React, { useState } from 'react';
-import { CheckCircle, AlertTriangle, RefreshCw, XCircle, Loader2 } from 'lucide-react';
+import React from 'react';
+import { ArrowLeft, Award, Zap, Leaf, ShieldAlert } from 'lucide-react';
 
 const AIAnalysisResult = ({ image, result, onReset }) => {
-  const [isClaiming, setIsClaiming] = useState(false);
-  const [claimed, setClaimed] = useState(false);
-
-  // Parse JSON from Gemini response
-  let data = {};
-  try {
-    const cleanJson = typeof result === 'string' 
-      ? result.replace(/```json|```/g, '').trim() 
-      : result;
-    data = JSON.parse(cleanJson);
-  } catch (e) {
-    data = { error: "Failed to read AI analysis." };
-  }
-
-  const handleClaimTokens = async () => {
-    setIsClaiming(true);
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/claim-tokens', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tokens: data.tokens || 50 }),
-      });
-      const resData = await response.json();
-      if (resData.status === "success") {
-        setClaimed(true);
-      }
-    } catch (error) {
-      alert("Error connecting to backend database.");
-    } finally {
-      setIsClaiming(false);
+    if (result.error) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-center mt-20">
+                <ShieldAlert className="w-16 h-16 text-red-500 mb-4" />
+                <h2 className="text-2xl font-bold text-white mb-2">Analysis Failed</h2>
+                <p className="text-gray-400 mb-6">{result.error}</p>
+                <button onClick={onReset} className="bg-dark-800 hover:bg-dark-700 text-white font-bold py-2 px-6 rounded-lg transition-colors border border-gray-700">
+                    Try Another Scan
+                </button>
+            </div>
+        );
     }
-  };
 
-  if (data.error || data.item === "Not E-Waste") {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-dark-800 rounded-3xl border border-red-500/20">
-        <XCircle className="w-20 h-20 text-red-500 mb-6" />
-        <h2 className="text-2xl font-bold text-white mb-2">Invalid Item</h2>
-        <p className="text-gray-400 mb-8">{data.error || "Please upload electronic waste only."}</p>
-        <button onClick={onReset} className="bg-white text-dark-900 font-bold px-8 py-3 rounded-xl">Try Again</button>
-      </div>
+        <div className="w-full max-w-4xl mx-auto flex flex-col md:flex-row gap-8 animate-in slide-in-from-bottom-8 duration-500 pb-10">
+            {/* Left Column: The Image */}
+            <div className="w-full md:w-1/3 flex flex-col gap-4">
+                <div className="rounded-2xl overflow-hidden border-2 border-dark-700 shadow-xl relative group">
+                    <img src={image} alt="Captured Waste" className="w-full h-auto object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-transparent opacity-80"></div>
+                </div>
+                
+                <button 
+                    onClick={onReset} 
+                    className="flex items-center justify-center gap-2 w-full bg-dark-800 hover:bg-dark-700 text-white font-bold py-3 px-4 rounded-xl transition-colors border border-gray-700"
+                >
+                    <ArrowLeft className="w-4 h-4" /> Scan Another Item
+                </button>
+            </div>
+
+            {/* Right Column: AI Analysis Data */}
+            <div className="w-full md:w-2/3 space-y-6">
+                <div className="bg-[#1e293b] p-6 rounded-2xl border border-gray-700 shadow-lg relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-waste-500/10 rounded-bl-full -mr-4 -mt-4"></div>
+                    <span className="inline-block bg-waste-500/20 text-waste-500 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider mb-3">
+                        {result.category || "E-Waste"}
+                    </span>
+                    <h2 className="text-3xl font-black text-white mb-2">{result.item}</h2>
+                    <p className="text-gray-400 text-sm leading-relaxed">{result.disposal_guide}</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="bg-dark-800 p-5 rounded-2xl border border-blue-500/30 flex flex-col justify-center relative overflow-hidden">
+                        <Leaf className="absolute right-4 bottom-4 w-12 h-12 text-blue-500/10" />
+                        <h4 className="text-blue-400 text-xs font-bold uppercase tracking-wider mb-2">Carbon Offset</h4>
+                        <p className="text-3xl font-black text-white">
+                            {result.carbon_saved || "0"} <span className="text-sm font-normal text-gray-400">kg CO₂</span>
+                        </p>
+                    </div>
+
+                    <div className="bg-dark-800 p-5 rounded-2xl border border-waste-500/30 flex flex-col justify-center relative overflow-hidden">
+                        <Award className="absolute right-4 bottom-4 w-12 h-12 text-waste-500/10" />
+                        <h4 className="text-waste-500 text-xs font-bold uppercase tracking-wider mb-2">Reward Value</h4>
+                        <p className="text-3xl font-black text-white flex items-center gap-2">
+                            +{result.tokens || "10"} <span className="text-sm font-normal text-gray-400">Tokens</span>
+                        </p>
+                    </div>
+                </div>
+
+                {result.materials && result.materials.length > 0 && (
+                    <div className="bg-[#0b1120] p-6 rounded-2xl border border-yellow-500/30 shadow-lg">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Zap className="w-5 h-5 text-yellow-500" />
+                            <h3 className="text-white font-bold text-lg">Recoverable Materials</h3>
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                            {result.materials.map((mat, index) => (
+                                <div key={index} className="bg-dark-800 border border-gray-700 px-4 py-2 rounded-lg flex items-center gap-2">
+                                    <span className="text-gray-300 font-bold text-sm">{mat.name}</span>
+                                    <span className="text-yellow-500 font-black text-sm">{mat.amount}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 🌟 FIXED: Added onClick to navigate to your map */}
+                <button 
+                    onClick={() => window.location.href = '/live-map'}
+                    className="w-full bg-waste-500 hover:bg-emerald-500 text-dark-900 font-black text-lg py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]"
+                >
+                    Find Drop-off Hub to Claim Tokens
+                </button>
+            </div>
+        </div>
     );
-  }
-
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full animate-in zoom-in-95">
-      <div className="relative rounded-3xl overflow-hidden border border-dark-700">
-        <img src={image} alt="Scanned" className="w-full h-full object-cover" />
-        <div className="absolute bottom-6 left-6">
-            <span className="bg-waste-500 text-dark-900 text-xs font-bold px-3 py-1 rounded-full">AI VERIFIED</span>
-        </div>
-      </div>
-
-      <div className="flex flex-col justify-center space-y-6">
-        <div>
-            <h2 className="text-gray-400 text-sm font-bold uppercase tracking-wider mb-2">Identification Complete</h2>
-            <h1 className="text-4xl font-bold text-white capitalize">{data.item}</h1>
-        </div>
-
-        <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl flex items-start gap-4">
-            <AlertTriangle className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />
-            <div>
-                <h3 className="text-yellow-500 font-bold">Hazard Analysis</h3>
-                <p className="text-gray-400 text-sm mt-1">{data.hazards}</p>
-            </div>
-        </div>
-
-        <div className="bg-dark-800 p-6 rounded-2xl border border-dark-700">
-            <div className="flex justify-between items-center mb-4 text-gray-400">
-                <span>Reward Amount</span>
-                <span className="text-waste-500 font-bold">{data.tokens || 50} TOKENS</span>
-            </div>
-            <div className="h-px bg-dark-700 my-4"></div>
-            <p className="text-xs text-gray-500">Tokens will be added to your Green Balance upon claiming.</p>
-        </div>
-
-        <div className="flex gap-4 pt-4">
-            <button onClick={onReset} className="flex-1 bg-dark-700 text-white font-bold py-3 rounded-xl">Scan Again</button>
-            <button 
-                onClick={handleClaimTokens}
-                disabled={claimed || isClaiming}
-                className={`flex-1 font-bold py-3 rounded-xl flex items-center justify-center gap-2 ${
-                    claimed ? 'bg-gray-600 text-gray-400' : 'bg-waste-500 text-dark-900 shadow-lg shadow-waste-500/20'
-                }`}
-            >
-                {isClaiming ? <Loader2 className="animate-spin" /> : claimed ? <CheckCircle /> : null}
-                {claimed ? "Claimed!" : isClaiming ? "Processing..." : "Claim Reward"}
-            </button>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 export default AIAnalysisResult;

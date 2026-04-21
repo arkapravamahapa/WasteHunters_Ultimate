@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { HeatmapLayer } from 'react-leaflet-heatmap-layer-v3'; // 🔥 NEW: Imported Heatmap
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -27,26 +28,24 @@ const MapController = ({ targetCenter }) => {
 };
 
 const LiveMap = () => {
-    // Default center set to Kolkata
     const [mapCenter, setMapCenter] = useState([22.5726, 88.4339]); 
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCenterId, setActiveCenterId] = useState(null);
     const [status, setStatus] = useState("Waiting for driver...");
+    
+    // 🔥 NEW: State to toggle the Heatmap on and off
+    const [showHeatmap, setShowHeatmap] = useState(false);
 
-    // --- FULL STACK UPGRADE: Dynamic State ---
     const [recyclingCenters, setRecyclingCenters] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // --- Fetch data from your new FastAPI Database ---
     useEffect(() => {
         const fetchCenters = async () => {
             try {
-                // Connecting to your Python server!
                 const response = await fetch("http://localhost:8000/api/centers");
                 if (!response.ok) throw new Error("Failed to fetch data");
-                
                 const data = await response.json();
-                setRecyclingCenters(data); // Inject database data into the map
+                setRecyclingCenters(data); 
             } catch (error) {
                 console.error("Error connecting to backend:", error);
                 setStatus("Backend offline. Cannot load centers.");
@@ -54,9 +53,8 @@ const LiveMap = () => {
                 setIsLoading(false);
             }
         };
-
         fetchCenters();
-    }, []); // Runs once when the map loads
+    }, []); 
 
     const handleCenterClick = (center) => {
         setMapCenter([center.lat, center.lng]);
@@ -83,7 +81,7 @@ const LiveMap = () => {
             {/* Split Screen Layout */}
             <div className="flex flex-col md:flex-row w-full h-full gap-4 overflow-hidden">
                 
-                {/* LEFT SIDEBAR: Dynamic Recycling Centers List */}
+                {/* LEFT SIDEBAR */}
                 <div className="w-full md:w-1/3 h-full overflow-y-auto pr-2 flex flex-col gap-3 custom-scrollbar">
                     <h2 className="text-xl font-bold text-white mb-2">Recycling Centers</h2>
                     
@@ -118,18 +116,39 @@ const LiveMap = () => {
 
                 {/* RIGHT SIDE: The Interactive Map */}
                 <div className="w-full md:w-2/3 h-full rounded-xl overflow-hidden border-2 border-emerald-500 relative z-0 shadow-lg">
+                    
+                    {/* 🔥 NEW: The Floating Heatmap Toggle Button */}
+                    <button 
+                        onClick={() => setShowHeatmap(!showHeatmap)}
+                        className="absolute top-4 right-4 z-[1000] bg-[#0b1120] text-white px-4 py-3 rounded-lg border border-gray-700 font-bold text-sm hover:bg-gray-800 shadow-2xl transition-all"
+                    >
+                        {showHeatmap ? "📍 View Standard Map" : "🔥 View Network Heatmap"}
+                    </button>
+
                     <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
-                        
                         <MapController targetCenter={mapCenter} />
                         
-                        {/* ☀️ Bright Mode Map Tiles */}
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                            attribution='© OpenStreetMap'
                         />
+
+                        {/* 🔥 NEW: The Heatmap Layer logic */}
+                        {showHeatmap && !isLoading && recyclingCenters.length > 0 && (
+                            <HeatmapLayer
+                                points={recyclingCenters}
+                                longitudeExtractor={m => m.lng}
+                                latitudeExtractor={m => m.lat}
+                                // Automatically pulls the percentage number from "45% Full"
+                                intensityExtractor={m => parseFloat(m.fill) || 50} 
+                                radius={30}
+                                blur={20}
+                                max={100}
+                            />
+                        )}
                         
-                        {/* Dynamic Markers from Database */}
-                        {!isLoading && recyclingCenters.map((center) => {
+                        {/* Dynamic Standard Markers (Hidden if Heatmap is ON) */}
+                        {!isLoading && !showHeatmap && recyclingCenters.map((center) => {
                             const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=$${center.lat},${center.lng}`;
                             return (
                                 <Marker key={center.id} position={[center.lat, center.lng]}>

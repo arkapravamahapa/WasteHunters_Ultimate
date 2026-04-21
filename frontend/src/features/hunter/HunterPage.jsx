@@ -14,14 +14,10 @@ const HunterPage = () => {
     setResult(null);
 
     try {
-        // 1. Convert Base64 image to a Blob
         const blob = await (await fetch(imgUrl)).blob();
-        
-        // 2. Prepare FormData for FastAPI
         const formData = new FormData();
         formData.append('file', blob, 'capture.jpg');
 
-        // 3. POST to your Python Backend
         const response = await fetch('http://127.0.0.1:8000/api/classify', {
             method: 'POST',
             body: formData,
@@ -30,10 +26,12 @@ const HunterPage = () => {
         const data = await response.json();
         
         if (data.status === "success") {
-            // Your backend sends the AI text in classification
-            // Note: Depending on your AIAnalysisResult component, 
-            // you might need to JSON.parse(data.classification)
-            setResult(data.classification);
+            // SAFETY CHECK: Ensure Gemini's response is treated as a JavaScript object
+            const parsedResult = typeof data.classification === 'string' 
+                ? JSON.parse(data.classification) 
+                : data.classification;
+                
+            setResult(parsedResult);
         } else {
             console.error("AI Error:", data.message);
             setResult({ error: "Could not classify item." });
@@ -57,25 +55,25 @@ const HunterPage = () => {
         {/* Header */}
         <div className="mb-8">
             <h1 className="text-3xl font-bold text-white tracking-tight">Hunter Tool</h1>
-            <p className="text-gray-400 mt-1">AI-powered e-waste classification using Gemini 1.5 Flash.</p>
+            <p className="text-gray-400 mt-1">AI-powered e-waste classification using Gemini 3.1 Flash.</p>
         </div>
 
         {/* Content Area */}
-        <div className="flex-1">
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-4">
             {!image && (
                 <CameraCapture onCapture={handleCapture} />
             )}
 
             {image && analyzing && (
-                <div className="h-full flex flex-col items-center justify-center text-center animate-in fade-in">
+                <div className="h-full flex flex-col items-center justify-center text-center animate-in fade-in mt-20">
                     <div className="relative">
                         <div className="w-24 h-24 rounded-full border-4 border-dark-700 border-t-waste-500 animate-spin mb-8"></div>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-2xl font-bold text-white">AI</span>
+                        <div className="absolute inset-0 flex items-center justify-center -mt-8">
+                            <span className="text-xl font-bold text-white">AI</span>
                         </div>
                     </div>
                     <h2 className="text-2xl font-bold text-white mb-2">Analyzing Material...</h2>
-                    <p className="text-gray-400">Gemini is identifying components and checking for toxins.</p>
+                    <p className="text-gray-400 max-w-md">Gemini is identifying components, checking for toxins, and estimating recoverable precious metals.</p>
                 </div>
             )}
 

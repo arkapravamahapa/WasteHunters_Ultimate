@@ -5,34 +5,66 @@ import { Zap, ArrowUpRight, Loader2 } from 'lucide-react';
 import ImpactStats from './components/ImpactStats'; 
 import LiveFeedTicker from './components/LiveFeedTicker';
 
+// 🌟 NEW: The Community Progress Bar Component
+const CommunityProgress = ({ data }) => {
+  if (!data) return null;
+  
+  // Calculate percentage, capping it at 100% just in case
+  const percentage = Math.min((data.current_kg / data.target_kg) * 100, 100);
+  
+  return (
+      <div className="bg-dark-800 p-6 rounded-2xl border border-dark-700 shadow-xl mb-6 animate-in slide-in-from-bottom-4">
+          <div className="flex justify-between items-center mb-4">
+              <h3 className="text-white font-bold text-lg">{data.city} Community Goal</h3>
+              <span className="text-waste-500 font-bold">{data.current_kg} / {data.target_kg} kg</span>
+          </div>
+          <div className="w-full h-4 bg-dark-900 rounded-full overflow-hidden border border-gray-800">
+              <div 
+                  className="h-full bg-gradient-to-r from-emerald-600 to-waste-500 transition-all duration-1000 shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+                  style={{ width: `${percentage}%` }}
+              ></div>
+          </div>
+          <p className="text-xs text-gray-500 mt-3 font-medium flex items-center gap-2">
+              <span>🔥 Joined by <strong className="text-gray-300">{data.contributor_count} contributors</strong> this month.</span>
+          </p>
+      </div>
+  );
+};
+
+
 const DashboardPage = () => {
   const [stats, setStats] = useState({ tokens: 0, events: 0 });
-  
-  // NEW: State to track both the total and the active hubs
   const [centerStats, setCenterStats] = useState({ total: 0, active: 0 });
+  
+  // 🌟 NEW: State to hold the collective community goal data
+  const [communityData, setCommunityData] = useState(null);
+  
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch all required dashboard data in parallel
     const fetchDashboardData = async () => {
       try {
-        const [statsRes, centersRes] = await Promise.all([
+        const [statsRes, centersRes, communityRes] = await Promise.all([
           fetch('http://127.0.0.1:8000/api/user-stats'),
-          fetch('http://127.0.0.1:8000/api/centers')
+          fetch('http://127.0.0.1:8000/api/centers'),
+          fetch('http://127.0.0.1:8000/api/community-goal') // 👈 NEW ENDPOINT
         ]);
 
         if (statsRes.ok) setStats(await statsRes.json());
+        
         if (centersRes.ok) {
           const centersData = await centersRes.json();
-          
-          // NEW: Calculate how many centers are strictly "Active"
           const activeCount = centersData.filter(center => center.status === 'Active').length;
-          
           setCenterStats({ 
             total: centersData.length, 
             active: activeCount 
           });
         }
+
+        // Save the community data
+        if (communityRes.ok) setCommunityData(await communityRes.json());
+
       } catch (error) {
         console.error("Failed to load dashboard data", error);
       } finally {
@@ -56,6 +88,7 @@ const DashboardPage = () => {
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
+      
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -72,6 +105,9 @@ const DashboardPage = () => {
           <span>Quick Scan</span>
         </button>
       </div>
+
+      {/* 🌟 NEW: The Community Goal Progress Bar */}
+      <CommunityProgress data={communityData} />
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -90,7 +126,7 @@ const DashboardPage = () => {
                 </div>
             </div>
             
-            {/* UPDATED: Dynamic Live Database Centers Card */}
+            {/* Dynamic Live Database Centers Card */}
             <div className="bg-dark-800 p-5 rounded-2xl border border-dark-700">
                 <div className="text-gray-400 text-xs uppercase font-bold mb-2">Active Centers</div>
                 <div className="text-2xl font-bold text-white">

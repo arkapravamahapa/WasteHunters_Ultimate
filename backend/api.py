@@ -242,19 +242,35 @@ def delete_center(center_id: int, db: Session = Depends(get_db)):
 @app.post("/api/classify")
 async def classify_ewaste(file: UploadFile = File(...)):
     image_bytes = await file.read()
+    
+    # 🌟 UPGRADED PROMPT: Asking for precious metals and carbon impact
     prompt = """
-    Analyze the uploaded image and identify the type of waste shown.
-    1. Categorize it into one of these: Plastic, Paper, Metal, Glass, Organic, E-Waste, or Hazardous.
-    2. Provide a short 'disposal_guide'.
-    3. Return ONLY a JSON object in this format:
-    {"item": "name", "category": "category name", "hazards": "list", "is_recyclable": true/false, "disposal_guide": "how to dispose", "tokens": 50}
+    Analyze this waste item and provide a detailed recovery report.
+    1. Identify the 'item' and its 'category'.
+    2. Estimate 'recoverable_materials' (e.g., Gold: 0.05g, Copper: 20g).
+    3. Estimate 'carbon_offset' (kg of CO2 saved if recycled).
+    4. Provide a 'disposal_guide'.
+    5. Assign a 'token_value' between 10 and 100.
+    
+    Return ONLY a JSON object in this format:
+    {
+      "item": "name",
+      "category": "category",
+      "materials": [{"name": "Gold", "amount": "0.02g"}, {"name": "Copper", "amount": "15g"}],
+      "carbon_saved": 2.5,
+      "disposal_guide": "instructions",
+      "tokens": 50
+    }
     """
     
     response = client.models.generate_content(
         model="gemini-3-flash-preview", 
         contents=[prompt, types.Part.from_bytes(data=image_bytes, mime_type=file.content_type)]
     )
-    return {"status": "success", "classification": response.text}
+    
+    # Clean the response text (sometimes AI adds ```json blocks)
+    clean_json = response.text.replace("```json", "").replace("```", "").strip()
+    return {"status": "success", "classification": json.loads(clean_json)}
 
 @app.get("/api/campaigns")
 async def get_campaigns(db: Session = Depends(get_db)):
@@ -341,3 +357,12 @@ async def get_live_feed():
         {"id": 103, "user": "Admin", "action": "deployed a new collection bin", "hub": "Eco Park", "time": "1 hour ago"},
         {"id": 104, "user": "Aditya", "action": "claimed 50 Green Tokens", "hub": "System", "time": "3 hours ago"}
     ]
+    
+@app.get("/api/community-goal")
+async def get_community_goal():
+    return {
+        "target_kg": 1000,
+        "current_kg": 642.5,
+        "contributor_count": 128,
+        "city": "Kolkata"
+    }
