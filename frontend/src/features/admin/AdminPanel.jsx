@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+// 🌟 STEP 1: Import the central config
+import { API_BASE_URL } from '../../api_config';
 
 const AdminPanel = () => {
-    // Notice we changed 'fill' to just be a number (0)
     const [formData, setFormData] = useState({ name: "", lat: "", lng: "", status: "Active", fill: 0 });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState(null);
@@ -10,7 +11,8 @@ const AdminPanel = () => {
 
     const fetchCenters = async () => {
         try {
-            const response = await fetch("http://localhost:8000/api/centers");
+            // 🌟 STEP 2: Use the cloud URL
+            const response = await fetch(`${API_BASE_URL}/api/centers`);
             if (response.ok) {
                 const data = await response.json();
                 setCentersList(data);
@@ -34,7 +36,8 @@ const AdminPanel = () => {
         setMessage(null);
 
         try {
-            const response = await fetch("http://localhost:8000/api/centers", {
+            // 🌟 STEP 3: Use the cloud URL for the POST request
+            const response = await fetch(`${API_BASE_URL}/api/centers`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -42,7 +45,6 @@ const AdminPanel = () => {
                     lat: parseFloat(formData.lat),
                     lng: parseFloat(formData.lng),
                     status: formData.status,
-                    // We automatically add "% Full" here so the backend stays happy!
                     fill: `${formData.fill}% Full` 
                 })
             });
@@ -63,7 +65,8 @@ const AdminPanel = () => {
     const handleDelete = async (id, name) => {
         if (!window.confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
         try {
-            const response = await fetch(`http://localhost:8000/api/centers/${id}`, { method: "DELETE" });
+            // 🌟 STEP 4: Use the cloud URL for the DELETE request
+            const response = await fetch(`${API_BASE_URL}/api/centers/${id}`, { method: "DELETE" });
             if (!response.ok) throw new Error("Failed to delete");
             setMessage({ type: "success", text: `🗑️ Successfully deleted "${name}".` });
             fetchCenters(); 
@@ -83,7 +86,7 @@ const AdminPanel = () => {
 
             <div className="flex flex-col lg:flex-row gap-8">
                 
-                {/* LEFT SIDE: More Attractive "Add New Hub" Form */}
+                {/* LEFT SIDE: Add New Hub Form */}
                 <div className="flex-1 bg-[#0b1120] p-8 rounded-2xl border border-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.5)]">
                     <div className="mb-8 border-b border-gray-800 pb-4">
                         <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
@@ -94,14 +97,11 @@ const AdminPanel = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                        
-                        {/* Facility Name */}
                         <div className="bg-[#1e293b] p-4 rounded-xl border border-gray-700 focus-within:border-emerald-500 transition-colors">
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Facility Name</label>
                             <input required type="text" name="name" value={formData.name} onChange={handleChange} placeholder="e.g. Eco Park Tech Drop" className="w-full bg-transparent text-white text-lg focus:outline-none placeholder-gray-600" />
                         </div>
 
-                        {/* Coordinates Row */}
                         <div className="flex gap-4">
                             <div className="flex-1 bg-[#1e293b] p-4 rounded-xl border border-gray-700 focus-within:border-emerald-500 transition-colors">
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Latitude (Lat)</label>
@@ -113,7 +113,6 @@ const AdminPanel = () => {
                             </div>
                         </div>
 
-                        {/* Status Dropdown */}
                         <div className="bg-[#1e293b] p-4 rounded-xl border border-gray-700 focus-within:border-emerald-500 transition-colors">
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Operational Status</label>
                             <select name="status" value={formData.status} onChange={handleChange} className="w-full bg-transparent text-white text-lg focus:outline-none cursor-pointer">
@@ -123,7 +122,6 @@ const AdminPanel = () => {
                             </select>
                         </div>
 
-                        {/* NEW: Interactive Manual Capacity Slider */}
                         <div className="bg-[#1e293b] p-4 rounded-xl border border-gray-700 focus-within:border-emerald-500 transition-colors">
                             <div className="flex justify-between items-center mb-4">
                                 <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Current Capacity</label>
