@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Activity, Clock } from 'lucide-react';
+// 🌟 Import Config
+import { API_BASE_URL } from '../../../../api_config';
 
 const LiveFeedTicker = () => {
     const [feedData, setFeedData] = useState([]);
@@ -8,7 +10,8 @@ const LiveFeedTicker = () => {
     useEffect(() => {
         const fetchFeed = async () => {
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/live-feed');
+                // 🌟 Use Cloud URL
+                const response = await fetch(`${API_BASE_URL}/api/live-feed`);
                 if (response.ok) {
                     setFeedData(await response.json());
                 }
@@ -20,8 +23,6 @@ const LiveFeedTicker = () => {
         };
 
         fetchFeed();
-        
-        // Bonus: Poll for new data every 30 seconds for a true "live" feel
         const interval = setInterval(fetchFeed, 30000);
         return () => clearInterval(interval);
     }, []);
@@ -42,11 +43,9 @@ const LiveFeedTicker = () => {
                     feedData.map((item) => (
                         <div key={item.id} className="bg-dark-900 border border-dark-700 p-4 rounded-xl flex flex-col gap-2 relative overflow-hidden group hover:border-blue-500/50 transition-colors">
                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500/50 group-hover:bg-blue-500 transition-colors"></div>
-                            
                             <p className="text-sm text-gray-300">
                                 <strong className="text-white">{item.user}</strong> {item.action} at <span className="text-blue-400 font-medium">{item.hub}</span>.
                             </p>
-                            
                             <div className="flex items-center gap-1 text-xs text-gray-500 font-bold">
                                 <Clock className="w-3 h-3" />
                                 {item.time}
