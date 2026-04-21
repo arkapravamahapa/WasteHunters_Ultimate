@@ -1,44 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import RewardCard from './components/RewardCard'; 
 import { Sparkles, Loader2 } from 'lucide-react';
+// 🌟 STEP 1: Import the central config
+import { API_BASE_URL } from '../../api_config';
 
 const rewards = [
-  { 
-    id: 1, 
-    type: 'Voucher', 
-    title: 'Amazon Pay ₹500', 
-    desc: 'Redeem for eco-friendly products on Amazon India.', 
-    cost: 500, 
-    color: 'bg-gradient-to-br from-orange-500 to-yellow-600' 
-  },
-  { 
-    id: 2, 
-    type: 'Gadget', 
-    title: 'Solar Power Bank', 
-    desc: '10,000mAh Made-in-India solar charger.', 
-    cost: 2500, 
-    color: 'bg-gradient-to-br from-blue-600 to-indigo-700' 
-  },
-  { 
-    id: 3, 
-    type: 'Merch', 
-    title: 'Kolkata Green Tee', 
-    desc: 'Recycled cotton t-shirt with city motifs.', 
-    cost: 1200, 
-    color: 'bg-gradient-to-br from-emerald-500 to-teal-600' 
-  },
+  { id: 1, type: 'Voucher', title: 'Amazon Pay ₹500', desc: 'Redeem for eco-friendly products on Amazon India.', cost: 500, color: 'bg-gradient-to-br from-orange-500 to-yellow-600' },
+  { id: 2, type: 'Gadget', title: 'Solar Power Bank', desc: '10,000mAh Made-in-India solar charger.', cost: 2500, color: 'bg-gradient-to-br from-blue-600 to-indigo-700' },
+  { id: 3, type: 'Merch', title: 'Kolkata Green Tee', desc: 'Recycled cotton t-shirt with city motifs.', cost: 1200, color: 'bg-gradient-to-br from-emerald-500 to-teal-600' },
 ];
 
 const RewardsPage = () => {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
-  
-  // NEW: State to track which tab is clicked
   const [activeTab, setActiveTab] = useState('All Rewards');
 
   const fetchBalance = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/user-stats');
+      // 🌟 STEP 2: Use the cloud URL
+      const res = await fetch(`${API_BASE_URL}/api/user-stats`);
       if (res.ok) {
         const data = await res.json();
         setBalance(data.tokens);
@@ -54,7 +34,6 @@ const RewardsPage = () => {
     fetchBalance();
   }, []);
 
-  // NEW: Logic to filter rewards based on the active tab
   const filteredRewards = rewards.filter(reward => {
     if (activeTab === 'All Rewards') return true;
     if (activeTab === 'Vouchers') return reward.type === 'Voucher';
@@ -65,8 +44,6 @@ const RewardsPage = () => {
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
-        
-      {/* Header Banner */}
       <div className="bg-waste-500 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between shadow-[0_0_40px_-10px_#10b981]">
         <div className="mb-6 md:mb-0">
             <h1 className="text-4xl font-bold text-dark-900 mb-2">Redeem Rewards</h1>
@@ -83,14 +60,11 @@ const RewardsPage = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-4 border-b border-dark-700 pb-4 overflow-x-auto">
         {['All Rewards', 'Vouchers', 'Gadgets', 'Merch'].map((tab) => (
             <button 
               key={tab} 
-              // NEW: Update activeTab state on click
               onClick={() => setActiveTab(tab)}
-              // NEW: Change styling based on which tab is active
               className={`text-sm font-bold pb-2 px-2 whitespace-nowrap transition-colors ${activeTab === tab ? 'text-waste-500 border-b-2 border-waste-500' : 'text-gray-400 hover:text-white'}`}
             >
                 {tab}
@@ -98,9 +72,7 @@ const RewardsPage = () => {
         ))}
       </div>
 
-      {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* NEW: Map over the filtered list instead of all rewards */}
         {filteredRewards.map(reward => (
             <RewardCard 
               key={reward.id} 
@@ -109,7 +81,6 @@ const RewardsPage = () => {
               onRedeemSuccess={fetchBalance}
             />
         ))}
-        {/* Placeholder */}
         <div className="bg-dark-800/50 rounded-2xl border border-dashed border-dark-700 flex flex-col items-center justify-center p-8 text-center group hover:border-waste-500/50 transition-colors">
             <Sparkles className="w-8 h-8 text-gray-600 mb-2 group-hover:text-waste-500 transition-colors" />
             <span className="text-gray-500 font-medium">More Indian Brands coming soon</span>

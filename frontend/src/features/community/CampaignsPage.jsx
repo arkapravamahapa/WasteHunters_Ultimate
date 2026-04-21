@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import CampaignCard from './components/CampaignCard'; // Make sure this path is correct!
+import CampaignCard from './components/CampaignCard'; 
 import { Plus, Search, Megaphone, Loader2, X } from 'lucide-react';
+// 🌟 STEP 1: Import the central config
+import { API_BASE_URL } from '../../api_config'; 
 
 const CampaignsPage = () => {
   const [activeTab, setActiveTab] = useState('Explore');
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // NEW: Track joined campaigns using LocalStorage
   const [joinedIds, setJoinedIds] = useState([]);
   
-  // Modal State
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -20,18 +19,18 @@ const CampaignsPage = () => {
     max_volunteers: 20
   });
 
-  const CURRENT_USER = "GreenHacker"; // Simulating logged-in user
+  const CURRENT_USER = "GreenHacker";
 
   useEffect(() => {
     fetchCampaigns();
-    // NEW: Load saved joins from the browser memory when the page loads
     const savedJoins = JSON.parse(localStorage.getItem('wastehunters_joined') || '[]');
     setJoinedIds(savedJoins);
   }, []);
 
   const fetchCampaigns = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/campaigns');
+      // 🌟 STEP 2: Use the cloud URL
+      const res = await fetch(`${API_BASE_URL}/api/campaigns`);
       if (res.ok) {
         const data = await res.json();
         setCampaigns(data);
@@ -46,7 +45,8 @@ const CampaignsPage = () => {
   const handleCreateCampaign = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/campaigns', {
+      // 🌟 STEP 3: Use the cloud URL for the POST request
+      const res = await fetch(`${API_BASE_URL}/api/campaigns`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -67,31 +67,26 @@ const CampaignsPage = () => {
     }
   };
 
-  // NEW: Handle when a user joins a campaign to save it permanently
   const handleJoinCampaign = (campaignId) => {
     const updatedJoins = [...joinedIds, campaignId];
     setJoinedIds(updatedJoins);
     localStorage.setItem('wastehunters_joined', JSON.stringify(updatedJoins));
-    fetchCampaigns(); // Refresh the progress bars
+    fetchCampaigns(); 
   };
 
-  // FIXED: Filter Logic
   const filteredCampaigns = campaigns.filter(camp => {
     const matchesSearch = camp.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           camp.location.toLowerCase().includes(searchQuery.toLowerCase());
     
     if (!matchesSearch) return false;
     if (activeTab === 'My Campaigns') return camp.creator === CURRENT_USER;
-    
-    // FIXED: Only show campaigns whose ID is in our joinedIds array
     if (activeTab === 'Joined') return joinedIds.includes(camp.id); 
     
-    return true; // 'Explore' shows all
+    return true;
   });
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
@@ -107,7 +102,6 @@ const CampaignsPage = () => {
         </button>
       </div>
 
-      {/* Filter Bar */}
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between border-b border-dark-700 pb-6">
         <div className="flex gap-6">
           {['Explore', 'My Campaigns', 'Joined'].map(tab => (
@@ -132,7 +126,6 @@ const CampaignsPage = () => {
         </div>
       </div>
 
-      {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full flex justify-center py-20">
@@ -147,7 +140,6 @@ const CampaignsPage = () => {
             <CampaignCard 
               key={camp.id} 
               {...camp} 
-              // NEW: Pass down the joined status and join function
               isAlreadyJoined={joinedIds.includes(camp.id)}
               onJoin={() => handleJoinCampaign(camp.id)} 
             />
@@ -155,7 +147,6 @@ const CampaignsPage = () => {
         )}
       </div>
 
-      {/* CREATE MODAL */}
       {showCreateModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in zoom-in-95">
           <div className="bg-dark-900 border border-dark-700 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">

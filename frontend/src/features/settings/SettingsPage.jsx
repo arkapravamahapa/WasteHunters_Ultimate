@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Bell, Shield, Moon, Globe, LogOut, ChevronRight, MapPin, Smartphone } from 'lucide-react';
 
-// A reusable Toggle Switch component
 const Toggle = ({ enabled, onChange }) => (
   <button
     type="button"
@@ -19,7 +18,6 @@ const Toggle = ({ enabled, onChange }) => (
 );
 
 const SettingsPage = () => {
-  // Local state for UI toggles
   const [notifications, setNotifications] = useState(true);
   const [locationServices, setLocationServices] = useState(true);
   const [emailAlerts, setEmailAlerts] = useState(false);
@@ -31,16 +29,12 @@ const SettingsPage = () => {
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500 max-w-4xl mx-auto">
-      
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white tracking-tight">Settings</h1>
         <p className="text-gray-400 mt-1">Manage your app preferences and account settings.</p>
       </div>
 
       <div className="space-y-6">
-        
-        {/* App Preferences */}
         <div className="bg-dark-800 rounded-2xl border border-dark-700 overflow-hidden">
             <div className="p-6 border-b border-dark-700">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -74,7 +68,6 @@ const SettingsPage = () => {
             </div>
         </div>
 
-        {/* Notifications */}
         <div className="bg-dark-800 rounded-2xl border border-dark-700 overflow-hidden">
             <div className="p-6 border-b border-dark-700">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -99,7 +92,6 @@ const SettingsPage = () => {
             </div>
         </div>
 
-        {/* Security & Account */}
         <div className="bg-dark-800 rounded-2xl border border-dark-700 overflow-hidden">
             <div className="p-6 border-b border-dark-700">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -107,20 +99,14 @@ const SettingsPage = () => {
                 </h2>
             </div>
             <div className="p-2">
-                <div 
-                    onClick={() => alert("Change password flow coming soon!")}
-                    className="flex items-center justify-between p-4 hover:bg-dark-700/50 rounded-xl transition-colors cursor-pointer group"
-                >
+                <div onClick={() => alert("Change password flow coming soon!")} className="flex items-center justify-between p-4 hover:bg-dark-700/50 rounded-xl transition-colors cursor-pointer group">
                     <div>
                         <p className="text-white font-medium group-hover:text-waste-400 transition-colors">Change Password</p>
                         <p className="text-sm text-gray-400">Update your account password</p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-gray-500 group-hover:text-waste-400 transition-colors" />
                 </div>
-                <div 
-                    onClick={() => alert("Privacy policy document opening...")}
-                    className="flex items-center justify-between p-4 hover:bg-dark-700/50 rounded-xl transition-colors cursor-pointer group"
-                >
+                <div onClick={() => alert("Privacy policy document opening...")} className="flex items-center justify-between p-4 hover:bg-dark-700/50 rounded-xl transition-colors cursor-pointer group">
                     <div>
                         <p className="text-white font-medium group-hover:text-waste-400 transition-colors">Privacy Policy</p>
                         <p className="text-sm text-gray-400">Review how we handle your data</p>
@@ -130,16 +116,11 @@ const SettingsPage = () => {
             </div>
         </div>
 
-        {/* Danger Zone */}
         <div className="pt-4">
-            <button 
-                onClick={handleLogout}
-                className="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors"
-            >
+            <button onClick={handleLogout} className="w-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors">
                 <LogOut className="w-5 h-5" /> Sign Out
             </button>
         </div>
-
       </div>
     </div>
   );

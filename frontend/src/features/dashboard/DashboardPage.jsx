@@ -4,6 +4,7 @@ import { Zap, ArrowUpRight, Loader2 } from 'lucide-react';
 // FIXED: Added '/components/' to the import paths
 import ImpactStats from './components/ImpactStats'; 
 import LiveFeedTicker from './components/LiveFeedTicker';
+import { API_BASE_URL } from '../../api_config';
 
 // 🌟 NEW: The Community Progress Bar Component
 const CommunityProgress = ({ data }) => {
@@ -45,10 +46,11 @@ const DashboardPage = () => {
     // Fetch all required dashboard data in parallel
     const fetchDashboardData = async () => {
       try {
+        // 🌟 UPDATED: Swapped hardcoded URLs for ${API_BASE_URL}
         const [statsRes, centersRes, communityRes] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/user-stats'),
-          fetch('http://127.0.0.1:8000/api/centers'),
-          fetch('http://127.0.0.1:8000/api/community-goal') // 👈 NEW ENDPOINT
+          fetch(`${API_BASE_URL}/api/user-stats`),
+          fetch(`${API_BASE_URL}/api/centers`),
+          fetch(`${API_BASE_URL}/api/community-goal`) 
         ]);
 
         if (statsRes.ok) setStats(await statsRes.json());
@@ -75,7 +77,7 @@ const DashboardPage = () => {
     fetchDashboardData();
   }, []);
 
-  // Calculate a dynamic "kg processed" metric based on recycling events (e.g., 15kg per event)
+  // Calculate a dynamic "kg processed" metric based on recycling events (e.g., 15.5kg per event)
   const totalKg = (stats.events * 15.5).toFixed(1);
 
   if (loading) {

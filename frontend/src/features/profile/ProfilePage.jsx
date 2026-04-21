@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { User, MapPin, Mail, Calendar, Edit2, Share2, Award, History, Loader2, CheckCircle, X } from 'lucide-react';
 import AchievementCard from './components/AchievementCard';
+// 🌟 STEP 1: Import the central config
+import { API_BASE_URL } from '../../api_config';
 
 const ProfilePage = () => {
   const [stats, setStats] = useState({ tokens: 0, events: 0 });
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // NEW: Profile State linked to LocalStorage for persistence
   const [profile, setProfile] = useState(() => {
     const savedProfile = localStorage.getItem('wastehunters_profile');
     return savedProfile ? JSON.parse(savedProfile) : {
@@ -19,12 +20,12 @@ const ProfilePage = () => {
     };
   });
 
-  // NEW: Edit Modal States
   const [showEditModal, setShowEditModal] = useState(false);
   const [editForm, setEditForm] = useState(profile);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/user-stats')
+    // 🌟 STEP 2: Use the cloud URL
+    fetch(`${API_BASE_URL}/api/user-stats`)
       .then(res => res.json())
       .then(data => {
         setStats(data);
@@ -49,7 +50,6 @@ const ProfilePage = () => {
     setTimeout(() => setCopied(false), 2000); 
   };
 
-  // NEW: Handle saving the profile
   const handleSaveProfile = (e) => {
     e.preventDefault();
     setProfile(editForm);
@@ -67,8 +67,6 @@ const ProfilePage = () => {
 
   return (
     <div className="p-8 space-y-8 animate-in fade-in duration-500 relative">
-      
-      {/* 1. Header & User Info Card */}
       <div className="bg-dark-800 rounded-3xl p-8 border border-dark-700 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-waste-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         
@@ -100,10 +98,9 @@ const ProfilePage = () => {
                 <div className="text-xs text-gray-400 font-bold uppercase mt-1">Total Hunts</div>
             </div>
             
-            {/* UPDATED: Opens the Edit Modal */}
             <button 
                 onClick={() => {
-                  setEditForm(profile); // Reset form to current profile data
+                  setEditForm(profile); 
                   setShowEditModal(true);
                 }}
                 className="bg-dark-700 hover:bg-dark-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 transition-colors"
@@ -114,8 +111,6 @@ const ProfilePage = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* 2. Achievements Column */}
         <div className="space-y-6">
             <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-waste-500" /> 
@@ -126,7 +121,6 @@ const ProfilePage = () => {
             <AchievementCard title="Community Leader" percent={Math.round(leaderPercent)} color="bg-blue-500" />
             <AchievementCard title="Zero Waste Master" percent={Math.round(zeroWastePercent)} color="bg-purple-500" />
             
-            {/* Referral Card */}
             <div className="bg-gradient-to-br from-waste-600 to-waste-800 p-6 rounded-2xl text-center shadow-lg mt-8">
                 <h3 className="text-white font-bold text-lg mb-2">Refer a Friend</h3>
                 <p className="text-waste-100 text-sm mb-4">Earn 500 tokens for every friend in Kolkata who recycles their first item.</p>
@@ -139,7 +133,6 @@ const ProfilePage = () => {
             </div>
         </div>
 
-        {/* 3. Recycling History Column */}
         <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center gap-2">
                 <History className="w-5 h-5 text-waste-500" /> 
@@ -172,10 +165,8 @@ const ProfilePage = () => {
                 </div>
             </div>
         </div>
-
       </div>
 
-      {/* NEW: Edit Profile Modal */}
       {showEditModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in zoom-in-95">
           <div className="bg-dark-900 border border-dark-700 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
@@ -209,7 +200,6 @@ const ProfilePage = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
