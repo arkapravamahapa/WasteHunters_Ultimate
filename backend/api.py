@@ -275,7 +275,7 @@ async def classify_ewaste(file: UploadFile = File(...)):
     }
     """
     response = client.models.generate_content(
-        model="gemini-1.5-flash", 
+        model="gemini-2.0-flash", 
         contents=[prompt, types.Part.from_bytes(data=image_bytes, mime_type=file.content_type)]
     )
     clean_json = response.text.replace("```json", "").replace("```", "").strip()
