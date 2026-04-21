@@ -7,7 +7,9 @@ import LiveFeedTicker from './components/LiveFeedTicker';
 
 const DashboardPage = () => {
   const [stats, setStats] = useState({ tokens: 0, events: 0 });
-  const [centerCount, setCenterCount] = useState(0);
+  
+  // NEW: State to track both the total and the active hubs
+  const [centerStats, setCenterStats] = useState({ total: 0, active: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -22,7 +24,14 @@ const DashboardPage = () => {
         if (statsRes.ok) setStats(await statsRes.json());
         if (centersRes.ok) {
           const centersData = await centersRes.json();
-          setCenterCount(centersData.length);
+          
+          // NEW: Calculate how many centers are strictly "Active"
+          const activeCount = centersData.filter(center => center.status === 'Active').length;
+          
+          setCenterStats({ 
+            total: centersData.length, 
+            active: activeCount 
+          });
         }
       } catch (error) {
         console.error("Failed to load dashboard data", error);
@@ -80,12 +89,15 @@ const DashboardPage = () => {
                     {totalKg} kg <span className="text-waste-500 text-xs mb-1 flex items-center bg-waste-500/10 px-1.5 py-0.5 rounded">+12% <ArrowUpRight className="w-3 h-3 ml-0.5"/></span>
                 </div>
             </div>
+            
+            {/* UPDATED: Dynamic Live Database Centers Card */}
             <div className="bg-dark-800 p-5 rounded-2xl border border-dark-700">
                 <div className="text-gray-400 text-xs uppercase font-bold mb-2">Active Centers</div>
                 <div className="text-2xl font-bold text-white">
-                    {centerCount} <span className="text-gray-500 text-sm font-normal">/ 12</span>
+                    {centerStats.active} <span className="text-gray-500 text-sm font-normal">/ {centerStats.total}</span>
                 </div>
             </div>
+            
              <div className="bg-dark-800 p-5 rounded-2xl border border-dark-700 hidden md:block">
                 <div className="text-gray-400 text-xs uppercase font-bold mb-2">Network Load</div>
                 <div className="text-2xl font-bold text-waste-500 flex items-center gap-2">

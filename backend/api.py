@@ -315,3 +315,29 @@ async def redeem_tokens(payload: dict, db: Session = Depends(get_db)):
     db.commit()
     
     return {"status": "success", "new_balance": user.green_tokens}
+
+# ==========================================
+# DASHBOARD LIVE DATA ENDPOINTS
+# ==========================================
+
+@app.get("/api/chart-data")
+async def get_chart_data():
+    """Returns the last 6 months of recycling volume and carbon offset."""
+    return [
+        {"month": "Jan", "recycled": 40, "carbon": 25},
+        {"month": "Feb", "recycled": 30, "carbon": 15},
+        {"month": "Mar", "recycled": 55, "carbon": 45},
+        {"month": "Apr", "recycled": 80, "carbon": 60},
+        {"month": "May", "recycled": 65, "carbon": 50},
+        {"month": "Jun", "recycled": 90, "carbon": 70}
+    ]
+
+@app.get("/api/live-feed")
+async def get_live_feed():
+    """Returns the most recent global recycling activities."""
+    return [
+        {"id": 101, "user": "Rahul S.", "action": "dropped off 5kg of E-Waste", "hub": "Sector V Hub", "time": "2 mins ago"},
+        {"id": 102, "user": "Priya K.", "action": "recycled 12 lithium batteries", "hub": "New Town Action Area I", "time": "15 mins ago"},
+        {"id": 103, "user": "Admin", "action": "deployed a new collection bin", "hub": "Eco Park", "time": "1 hour ago"},
+        {"id": 104, "user": "Aditya", "action": "claimed 50 Green Tokens", "hub": "System", "time": "3 hours ago"}
+    ]

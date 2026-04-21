@@ -1,80 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, MapPin, ArrowRight, Loader2, Megaphone } from 'lucide-react';
+import { Activity, Clock } from 'lucide-react';
 
 const LiveFeedTicker = () => {
-  const [feedItems, setFeedItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+    const [feedData, setFeedData] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Fetch live campaigns to use as the activity feed
-    const fetchLiveFeed = async () => {
-      try {
-        const res = await fetch('http://127.0.0.1:8000/api/campaigns');
-        if (res.ok) {
-          const campaigns = await res.json();
-          // Map campaigns into a format our feed can display
-          const formattedFeed = campaigns.slice(-4).reverse().map(camp => ({
-            id: camp.id,
-            message: `New campaign: ${camp.title}`,
-            time: camp.date,
-            icon: Megaphone, // Using Megaphone icon for campaigns
-            color: 'text-waste-500 bg-waste-500/10 border-waste-500/20'
-          }));
-          setFeedItems(formattedFeed);
-        }
-      } catch (error) {
-        console.error("Failed to fetch live feed", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    useEffect(() => {
+        const fetchFeed = async () => {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/live-feed');
+                if (response.ok) {
+                    setFeedData(await response.json());
+                }
+            } catch (error) {
+                console.error("Failed to load feed", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
-    fetchLiveFeed();
-  }, []);
+        fetchFeed();
+        
+        // Bonus: Poll for new data every 30 seconds for a true "live" feel
+        const interval = setInterval(fetchFeed, 30000);
+        return () => clearInterval(interval);
+    }, []);
 
-  return (
-    <div className="w-full bg-dark-800 rounded-2xl p-6 border border-dark-700 h-[350px] flex flex-col">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-gray-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-            <Activity className="w-4 h-4 text-waste-500" />
-            Pathway Feed
-        </h3>
-        <span className="text-[10px] font-bold bg-waste-500/10 text-waste-500 px-2 py-1 rounded-full animate-pulse border border-waste-500/20">
-            LIVE
-        </span>
-      </div>
-
-      <div className="space-y-6 flex-1 overflow-y-auto pr-2">
-        {loading ? (
-          <div className="flex justify-center h-full items-center"><Loader2 className="animate-spin text-waste-500" /></div>
-        ) : (
-          feedItems.map((item, index) => (
-            <div key={item.id} className="flex gap-4 relative group cursor-pointer">
-              {/* Timeline Line (Hidden on the last item) */}
-              <div className={`absolute left-4.75 top-8 w-0.5 h-full bg-dark-700 transition-colors ${index === feedItems.length - 1 ? 'hidden' : 'group-hover:bg-dark-600'}`}></div>
-              
-              <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 z-10 transition-transform group-hover:scale-110 ${item.color}`}>
-                  <item.icon className="w-5 h-5" />
-              </div>
-              
-              <div>
-                  <p className="text-white text-sm font-medium group-hover:text-waste-400 transition-colors">{item.message}</p>
-                  <p className="text-gray-500 text-xs mt-1">{item.time}</p>
-              </div>
+    return (
+        <div className="bg-dark-800 p-6 rounded-2xl border border-dark-700 h-full flex flex-col">
+            <div className="flex items-center gap-3 mb-6 border-b border-dark-700 pb-4">
+                <div className="bg-blue-500/20 p-2 rounded-lg">
+                    <Activity className="w-5 h-5 text-blue-500" />
+                </div>
+                <h3 className="text-lg font-bold text-white tracking-wide">Live Network Feed</h3>
             </div>
-          ))
-        )}
-      </div>
-      
-      <button 
-        onClick={() => window.location.href = '/community'} // Route to community tab
-        className="w-full mt-4 py-3 text-xs font-bold uppercase text-gray-400 hover:text-white border-t border-dark-700 transition-colors flex items-center justify-center gap-2 group"
-      >
-        View All Activity
-        <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-      </button>
-    </div>
-  );
+
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4">
+                {isLoading ? (
+                    <p className="text-gray-500 text-sm animate-pulse">Connecting to global network...</p>
+                ) : (
+                    feedData.map((item) => (
+                        <div key={item.id} className="bg-dark-900 border border-dark-700 p-4 rounded-xl flex flex-col gap-2 relative overflow-hidden group hover:border-blue-500/50 transition-colors">
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500/50 group-hover:bg-blue-500 transition-colors"></div>
+                            
+                            <p className="text-sm text-gray-300">
+                                <strong className="text-white">{item.user}</strong> {item.action} at <span className="text-blue-400 font-medium">{item.hub}</span>.
+                            </p>
+                            
+                            <div className="flex items-center gap-1 text-xs text-gray-500 font-bold">
+                                <Clock className="w-3 h-3" />
+                                {item.time}
+                            </div>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
 };
 
 export default LiveFeedTicker;
