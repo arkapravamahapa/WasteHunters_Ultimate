@@ -1,20 +1,25 @@
 import os
 import json
-import urllib.parse  # 🌟 NEW: Needed to handle the '+' in your password
+import urllib.parse
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from dotenv import load_dotenv
-from google import genai
-from google.genai import types
 from pydantic import BaseModel
+
+# 🌟 FIXED: Importing Client directly to avoid the 'google' namespace error
+from google.genai import Client, types
 
 load_dotenv()
 
-# Initialize Gemini Client
+# ==========================================
+# INITIALIZATION
+# ==========================================
+
+# 🌟 FIXED: Use 'Client' instead of 'genai.Client'
 api_key = os.getenv("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
+client = Client(api_key=api_key)
 
 app = FastAPI(title="WasteHunters API")
 

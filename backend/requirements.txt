@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 sqlalchemy
-python-multipart
-google-generativeai
-python-dotenv
 psycopg2-binary
+google-genai==0.4.0
+python-dotenv
+python-multipart
