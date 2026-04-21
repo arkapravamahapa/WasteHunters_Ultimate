@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Users, Calendar, MapPin, ArrowRight, CheckCircle } from 'lucide-react';
+// 🌟 STEP 1: Import the central config (Note the path depth)
+import { API_BASE_URL } from '../../../../api_config';
 
-// NEW: Accept the isAlreadyJoined prop
 const CampaignCard = ({ id, title, location, date, volunteers, max_volunteers, creator, onJoin, isAlreadyJoined }) => {
   const [isJoining, setIsJoining] = useState(false);
   
@@ -9,17 +10,17 @@ const CampaignCard = ({ id, title, location, date, volunteers, max_volunteers, c
   const isFull = volunteers >= max_volunteers;
 
   const handleJoin = async () => {
-    // Prevent joining if full or already joined
     if (isFull || isAlreadyJoined) return;
     
     setIsJoining(true);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/campaigns/${id}/join`, {
+      // 🌟 STEP 2: Use the cloud URL
+      const res = await fetch(`${API_BASE_URL}/api/campaigns/${id}/join`, {
         method: 'POST',
       });
       
       if (res.ok) {
-        onJoin(); // This triggers the save to LocalStorage in CampaignsPage
+        onJoin(); 
       }
     } catch (error) {
       console.error("Error joining campaign", error);

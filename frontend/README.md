@@ -152,7 +152,6 @@ GEMINI_API_KEY=your_google_gemini_api_key_here
 
 ```bash
 uvicorn api:app --reload
-# Server runs on [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 ```
 

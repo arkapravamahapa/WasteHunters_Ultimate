@@ -1,33 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Search, X, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+// 🌟 STEP 1: Import the central config
+import { API_BASE_URL } from '../../api_config';
 
 const Header = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // To trigger a refresh when we move pages
+  const location = useLocation(); 
   const [showNotifications, setShowNotifications] = useState(false);
   
-  // LIVE USER DATA STATE - Set a default fallback name
   const [userData, setUserData] = useState({ name: "Arka", tokens: 0 });
 
-  // FETCH REAL DATA FROM BACKEND & LOCALSTORAGE
   useEffect(() => {
     const fetchStatsAndProfile = async () => {
       try {
-        // 1. Fetch live tokens from backend
-        const response = await fetch('http://127.0.0.1:8000/api/user-stats');
+        // 🌟 STEP 2: Use the cloud URL
+        const response = await fetch(`${API_BASE_URL}/api/user-stats`);
         const data = await response.json();
         
-        // 2. Fetch the dynamic name from LocalStorage
-        let currentName = "Arka"; // Fallback
+        let currentName = "Arka"; 
         const savedProfile = localStorage.getItem('wastehunters_profile');
         if (savedProfile) {
           const parsedProfile = JSON.parse(savedProfile);
-          // Get just the first name (e.g., "Arkaprava" -> "Arkaprava")
           currentName = parsedProfile.name.split(' ')[0]; 
         }
 
-        // 3. Update state with both live database values AND local profile name
         setUserData({ name: currentName, tokens: data.tokens });
       } catch (error) {
         console.error("Could not fetch live data:", error);
@@ -36,12 +33,10 @@ const Header = () => {
 
     fetchStatsAndProfile();
     
-    // Check every 5 seconds or whenever the user changes pages
     const interval = setInterval(fetchStatsAndProfile, 5000);
     return () => clearInterval(interval);
   }, [location]);
 
-  // Dummy Notifications Data
   const notifications = [
     {
       id: 1,
@@ -75,15 +70,12 @@ const Header = () => {
   return (
     <header className="h-20 bg-dark-900 border-b border-dark-700 flex items-center justify-between px-8 ml-64 fixed top-0 right-0 left-0 z-40">
       
-      {/* Welcome Text - Aligned */}
       <div className="flex items-center gap-2">
         <span className="text-gray-400 text-sm">Welcome back,</span>
         <span className="text-white font-bold text-lg">{userData.name}</span>
       </div>
 
-      {/* Right Side Actions */}
       <div className="flex items-center gap-6">
-        {/* Search Bar */}
         <div className="relative hidden md:block">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
             <input 
@@ -93,7 +85,6 @@ const Header = () => {
             />
         </div>
 
-        {/* Token Balance Card - NOW SHOWING LIVE DATA */}
         <div className="bg-waste-500/10 border border-waste-500/20 px-4 py-2 rounded-full flex items-center gap-2 shadow-[0_0_15px_-5px_#10b981]">
             <div className="w-5 h-5 rounded-full bg-waste-500 flex items-center justify-center text-[10px] text-black font-bold">T</div>
             <span className="text-waste-500 font-bold text-sm">
@@ -101,7 +92,6 @@ const Header = () => {
             </span>
         </div>
 
-        {/* Notification Bell with Dropdown */}
         <div className="relative">
             <button 
                 onClick={() => setShowNotifications(!showNotifications)}
@@ -111,7 +101,6 @@ const Header = () => {
                 <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-dark-900"></span>
             </button>
 
-            {/* Dropdown Menu */}
             {showNotifications && (
                 <div className="absolute right-0 top-12 w-80 bg-dark-800 border border-dark-700 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                     <div className="p-4 border-b border-dark-700 flex justify-between items-center">
@@ -139,7 +128,6 @@ const Header = () => {
             )}
         </div>
 
-        {/* User Avatar */}
         <div 
             onClick={() => navigate('/profile')}
             className="w-10 h-10 rounded-full bg-gradient-to-tr from-waste-400 to-blue-500 border-2 border-dark-800 cursor-pointer hover:border-waste-500 hover:scale-105 transition-all shadow-lg"
