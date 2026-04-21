@@ -1,5 +1,6 @@
 import os
 import json
+import urllib.parse  # 🌟 NEW: Needed to handle the '+' in your password
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, Integer, String, Float
@@ -25,10 +26,23 @@ app.add_middleware(
 )
 
 # ==========================================
-# DATABASE SETUP
+# DATABASE SETUP (UPDATED FOR SUPABASE)
 # ==========================================
-SQLALCHEMY_DATABASE_URL = "sqlite:///./wastehunters.db"
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+
+# 🌟 YOUR SUPABASE LINK (Password encoded to handle the '+' character)
+raw_password = "SWo7h+Trls7A"
+encoded_password = urllib.parse.quote_plus(raw_password)
+
+# This is your new permanent cloud address
+# This pulls the link from your .env file instead of hardcoding it
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+
+# If DATABASE_URL starts with postgres://, SQLAlchemy might need postgresql://
+if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Note: Removed connect_args because it is only for SQLite
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -58,7 +72,6 @@ class DBCampaign(Base):
     max_volunteers = Column(Integer)
     creator = Column(String)
 
-# NEW: Database Model for Recycling Centers
 class DBCenter(Base):
     __tablename__ = "centers"
     id = Column(Integer, primary_key=True, index=True)
@@ -68,13 +81,13 @@ class DBCenter(Base):
     status = Column(String)
     fill = Column(String)
 
-# Pydantic models for receiving data from frontend
+# Pydantic models
 class CampaignCreate(BaseModel):
     title: str
     location: str
     date: str
     max_volunteers: int
-    creator: str = "GreenHacker" # Defaulting to the logged-in user for the demo
+    creator: str = "GreenHacker"
 
 class CenterCreate(BaseModel):
     name: str
@@ -83,6 +96,7 @@ class CenterCreate(BaseModel):
     status: str = "Active"
     fill: str = "0% Full"
 
+# This creates the tables in Supabase automatically
 Base.metadata.create_all(bind=engine)
 
 def get_db():
@@ -148,7 +162,7 @@ def startup_event():
         ]
         db.add_all(campaigns)
 
-    # Seed Recycling Centers (Replaces hardcoded React data)
+    # Seed Recycling Centers
     if not db.query(DBCenter).first():
         centers = [
             DBCenter(name="Salt Lake Sector V Hub", lat=22.5800, lng=88.4500, status="Active", fill="45% Full"),
@@ -164,7 +178,7 @@ def startup_event():
     db.close()
 
 # ==========================================
-# CORE ENDPOINTS
+# ENDPOINTS
 # ==========================================
 
 @app.get("/api/lessons")
@@ -194,7 +208,6 @@ async def claim_tokens(payload: dict, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "success", "new_balance": user.green_tokens}
 
-# UPDATED: Pulls locations dynamically from the SQLite Database
 @app.get("/api/centers")
 def get_active_centers(db: Session = Depends(get_db)):
     centers = db.query(DBCenter).all()
@@ -209,7 +222,6 @@ def get_active_centers(db: Session = Depends(get_db)):
         } for c in centers
     ]
 
-# NEW: Endpoint to dynamically add a new Recycling Center
 @app.post("/api/centers")
 def create_center(center: CenterCreate, db: Session = Depends(get_db)):
     new_center = DBCenter(
@@ -223,27 +235,19 @@ def create_center(center: CenterCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_center)
     return {"status": "success", "id": new_center.id}
-# NEW: Endpoint to dynamically DELETE a Recycling Center
+
 @app.delete("/api/centers/{center_id}")
 def delete_center(center_id: int, db: Session = Depends(get_db)):
-    # 1. Find the center in the database
     center = db.query(DBCenter).filter(DBCenter.id == center_id).first()
-    
-    # 2. If it doesn't exist, throw an error
     if not center:
         raise HTTPException(status_code=404, detail="Center not found")
-    
-    # 3. Delete it and save the changes
     db.delete(center)
     db.commit()
-    
     return {"status": "success", "message": f"Hub {center_id} deleted successfully."}
 
 @app.post("/api/classify")
 async def classify_ewaste(file: UploadFile = File(...)):
     image_bytes = await file.read()
-    
-    # 🌟 UPGRADED PROMPT: Asking for precious metals and carbon impact
     prompt = """
     Analyze this waste item and provide a detailed recovery report.
     1. Identify the 'item' and its 'category'.
@@ -262,13 +266,10 @@ async def classify_ewaste(file: UploadFile = File(...)):
       "tokens": 50
     }
     """
-    
     response = client.models.generate_content(
-        model="gemini-3-flash-preview", 
+        model="gemini-1.5-flash", 
         contents=[prompt, types.Part.from_bytes(data=image_bytes, mime_type=file.content_type)]
     )
-    
-    # Clean the response text (sometimes AI adds ```json blocks)
     clean_json = response.text.replace("```json", "").replace("```", "").strip()
     return {"status": "success", "classification": json.loads(clean_json)}
 
@@ -292,13 +293,10 @@ async def join_campaign(campaign_id: int, db: Session = Depends(get_db)):
     campaign = db.query(DBCampaign).filter(DBCampaign.id == campaign_id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
-    
     if campaign.volunteers >= campaign.max_volunteers:
         raise HTTPException(status_code=400, detail="Campaign is full")
-        
     campaign.volunteers += 1
     db.commit()
-    
     return {"status": "success", "volunteers": campaign.volunteers}
 
 @app.post("/api/campaigns")
@@ -314,31 +312,20 @@ async def create_campaign(campaign: CampaignCreate, db: Session = Depends(get_db
     db.add(new_campaign)
     db.commit()
     db.refresh(new_campaign)
-    
     return {"status": "success", "id": new_campaign.id}
 
 @app.post("/api/redeem-tokens")
 async def redeem_tokens(payload: dict, db: Session = Depends(get_db)):
     user = db.query(DBUser).filter(DBUser.id == "user_123").first()
     cost = payload.get("cost", 0)
-    
-    # Check if user has enough tokens
     if user.green_tokens < cost:
         raise HTTPException(status_code=400, detail="Insufficient tokens")
-        
-    # Deduct the cost and save
     user.green_tokens -= cost
     db.commit()
-    
     return {"status": "success", "new_balance": user.green_tokens}
-
-# ==========================================
-# DASHBOARD LIVE DATA ENDPOINTS
-# ==========================================
 
 @app.get("/api/chart-data")
 async def get_chart_data():
-    """Returns the last 6 months of recycling volume and carbon offset."""
     return [
         {"month": "Jan", "recycled": 40, "carbon": 25},
         {"month": "Feb", "recycled": 30, "carbon": 15},
@@ -350,7 +337,6 @@ async def get_chart_data():
 
 @app.get("/api/live-feed")
 async def get_live_feed():
-    """Returns the most recent global recycling activities."""
     return [
         {"id": 101, "user": "Rahul S.", "action": "dropped off 5kg of E-Waste", "hub": "Sector V Hub", "time": "2 mins ago"},
         {"id": 102, "user": "Priya K.", "action": "recycled 12 lithium batteries", "hub": "New Town Action Area I", "time": "15 mins ago"},
