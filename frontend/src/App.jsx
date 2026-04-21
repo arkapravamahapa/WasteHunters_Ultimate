@@ -1,3 +1,4 @@
+import 'leaflet/dist/leaflet.css';
 import SettingsPage from './features/settings/SettingsPage';
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -7,11 +8,12 @@ import Header from './components/layout/Header';
 // Feature Imports
 import DashboardPage from './features/dashboard/DashboardPage';
 import HunterPage from './features/hunter/HunterPage';
-import MapPage from './features/map/MapPage';
+import LiveMap from "./features/map/LiveMap";
 import RewardsPage from './features/rewards/RewardsPage';
 import EducationPage from './features/education/EducationPage';
 import ProfilePage from './features/profile/ProfilePage';
 import CampaignsPage from './features/community/CampaignsPage';
+import AdminPanel from "./features/admin/AdminPanel";
 
 
 function App() {
@@ -25,7 +27,8 @@ function App() {
             <Routes>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/hunter" element={<HunterPage />} />
-              <Route path="/map" element={<MapPage />} />
+              <Route path="/map" element={<LiveMap />} />
+              <Route path="/admin" element={<AdminPanel />} />
               <Route path="/rewards" element={<RewardsPage />} />
               <Route path="/education" element={<EducationPage />} />
               <Route path="/profile" element={<ProfilePage />} />

@@ -21,3 +21,4 @@
 {"id": "21", "location": "Kasba Industrial Estate", "latitude": "22.5144", "longitude": "88.3930", "status": "Active", "current_capacity_percentage": "60", "type": "Recycler"}
 {"id": "22", "location": "Lake Town Clock Tower", "latitude": "22.6015", "longitude": "88.4010", "status": "Active", "current_capacity_percentage": "42", "type": "Smart Bin"}
 {"id": "23", "location": "Barrackpore Trunk Rd", "latitude": "22.6420", "longitude": "88.3810", "status": "Active", "current_capacity_percentage": "30", "type": "Collection Point"}
+-

@@ -2,7 +2,7 @@ import os
 import json
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy import create_engine, Column, Integer, String, Float
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from dotenv import load_dotenv
 from google import genai
@@ -58,13 +58,30 @@ class DBCampaign(Base):
     max_volunteers = Column(Integer)
     creator = Column(String)
 
-# NEW: Pydantic model for receiving new campaigns from the frontend
+# NEW: Database Model for Recycling Centers
+class DBCenter(Base):
+    __tablename__ = "centers"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    lat = Column(Float)
+    lng = Column(Float)
+    status = Column(String)
+    fill = Column(String)
+
+# Pydantic models for receiving data from frontend
 class CampaignCreate(BaseModel):
     title: str
     location: str
     date: str
     max_volunteers: int
     creator: str = "GreenHacker" # Defaulting to the logged-in user for the demo
+
+class CenterCreate(BaseModel):
+    name: str
+    lat: float
+    lng: float
+    status: str = "Active"
+    fill: str = "0% Full"
 
 Base.metadata.create_all(bind=engine)
 
@@ -130,6 +147,18 @@ def startup_event():
             DBCampaign(title="Eco Park E-Waste Awareness", location="Eco Park Main Gate", date="2026-03-20", volunteers=8, max_volunteers=15, creator="Aditya Roy")
         ]
         db.add_all(campaigns)
+
+    # Seed Recycling Centers (Replaces hardcoded React data)
+    if not db.query(DBCenter).first():
+        centers = [
+            DBCenter(name="Salt Lake Sector V Hub", lat=22.5800, lng=88.4500, status="Active", fill="45% Full"),
+            DBCenter(name="New Town Action Area I", lat=22.5900, lng=88.4700, status="Active", fill="20% Full"),
+            DBCenter(name="Eco Park Collection Point", lat=22.6186, lng=88.4630, status="Active", fill="98% Full"),
+            DBCenter(name="Chinar Park Dropoff", lat=22.6244, lng=88.4417, status="Active", fill="15% Full"),
+            DBCenter(name="Jadavpur University Campus", lat=22.4989, lng=88.3715, status="Active", fill="60% Full"),
+            DBCenter(name="South City Mall Dropoff", lat=22.5015, lng=88.3619, status="Busy", fill="85% Full")
+        ]
+        db.add_all(centers)
         
     db.commit()
     db.close()
@@ -165,16 +194,50 @@ async def claim_tokens(payload: dict, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "success", "new_balance": user.green_tokens}
 
+# UPDATED: Pulls locations dynamically from the SQLite Database
 @app.get("/api/centers")
-def get_active_centers():
-    centers = []
-    try:
-        with open("active_centers.jsonl", "r") as f:
-            for line in f:
-                centers.append(json.loads(line))
-    except FileNotFoundError:
-        return []
-    return centers
+def get_active_centers(db: Session = Depends(get_db)):
+    centers = db.query(DBCenter).all()
+    return [
+        {
+            "id": c.id,
+            "name": c.name,
+            "lat": c.lat,
+            "lng": c.lng,
+            "status": c.status,
+            "fill": c.fill
+        } for c in centers
+    ]
+
+# NEW: Endpoint to dynamically add a new Recycling Center
+@app.post("/api/centers")
+def create_center(center: CenterCreate, db: Session = Depends(get_db)):
+    new_center = DBCenter(
+        name=center.name,
+        lat=center.lat,
+        lng=center.lng,
+        status=center.status,
+        fill=center.fill
+    )
+    db.add(new_center)
+    db.commit()
+    db.refresh(new_center)
+    return {"status": "success", "id": new_center.id}
+# NEW: Endpoint to dynamically DELETE a Recycling Center
+@app.delete("/api/centers/{center_id}")
+def delete_center(center_id: int, db: Session = Depends(get_db)):
+    # 1. Find the center in the database
+    center = db.query(DBCenter).filter(DBCenter.id == center_id).first()
+    
+    # 2. If it doesn't exist, throw an error
+    if not center:
+        raise HTTPException(status_code=404, detail="Center not found")
+    
+    # 3. Delete it and save the changes
+    db.delete(center)
+    db.commit()
+    
+    return {"status": "success", "message": f"Hub {center_id} deleted successfully."}
 
 @app.post("/api/classify")
 async def classify_ewaste(file: UploadFile = File(...)):
@@ -222,7 +285,6 @@ async def join_campaign(campaign_id: int, db: Session = Depends(get_db)):
     
     return {"status": "success", "volunteers": campaign.volunteers}
 
-# NEW: Endpoint to create a campaign
 @app.post("/api/campaigns")
 async def create_campaign(campaign: CampaignCreate, db: Session = Depends(get_db)):
     new_campaign = DBCampaign(

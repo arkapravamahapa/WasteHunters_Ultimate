@@ -8,7 +8,7 @@ import {
   BookOpen, 
   User, 
   Settings,
-  Users // Import the Users icon
+  Users // icons
 } from 'lucide-react';
 
 const Sidebar = () => {
