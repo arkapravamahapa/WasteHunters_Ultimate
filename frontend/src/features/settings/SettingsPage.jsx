@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, Shield, Moon, Globe, LogOut, ChevronRight, MapPin, Smartphone } from 'lucide-react';
+// 🌟 STEP 1: Import the central config for future cloud settings
+import { API_BASE_URL } from '../../api_config'; 
 
 const Toggle = ({ enabled, onChange }) => (
   <button
