@@ -88,7 +88,7 @@ const Header = () => {
         <div className="bg-waste-500/10 border border-waste-500/20 px-4 py-2 rounded-full flex items-center gap-2 shadow-[0_0_15px_-5px_#10b981]">
             <div className="w-5 h-5 rounded-full bg-waste-500 flex items-center justify-center text-[10px] text-black font-bold">T</div>
             <span className="text-waste-500 font-bold text-sm">
-                {userData.tokens.toLocaleString()} TOKENS
+                {(userData.tokens || 0).toLocaleString()} TOKENS
             </span>
         </div>
 

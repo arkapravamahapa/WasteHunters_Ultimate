@@ -14,20 +14,23 @@ from google.genai import Client, types
 load_dotenv()
 
 # ==========================================
-# INITIALIZATION
+# INITIALIZATION & SECURITY
 # ==========================================
 
-# 🌟 FIXED: Use 'Client' instead of 'genai.Client'
+# 🌟 Gemini AI Setup
 api_key = os.getenv("GEMINI_API_KEY")
 client = Client(api_key=api_key)
 
 app = FastAPI(title="WasteHunters API")
 
+# 🌟 CORS SETUP: This is the "Master Key"
+# It tells Render to accept requests from your local computer AND Vercel.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"], # Allowing all origins is best for development
+    allow_credentials=True,
+    allow_methods=["*"], # Allows GET, POST, OPTIONS, etc.
+    allow_headers=["*"], # Allows all headers like Content-Type
 )
 
 # ==========================================
