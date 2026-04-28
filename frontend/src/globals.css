@@ -1,31 +1,23 @@
-@import "tailwindcss";
+/* 1. Core Tailwind Directives (v3 Standard) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@theme {
-  --color-waste-50: #ecfdf5;
-  --color-waste-100: #d1fae5;
-  --color-waste-200: #a7f3d0;
-  --color-waste-300: #6ee7b7;
-  --color-waste-400: #34d399;
-  --color-waste-500: #10b981;
-  --color-waste-600: #059669;
-  --color-waste-700: #047857;
-  
-  --color-dark-900: #0f172a;
-  --color-dark-800: #1e293b;
-  --color-dark-700: #334155;
+/* 2. Your Custom Global Styles */
+@layer base {
+  body {
+    @apply bg-[#0f172a] text-[#f8fafc] m-0 p-0;
+    font-family: sans-serif;
+  }
 }
 
-
-body {
-  background-color: #0f172a; /* Hardcoded Dark Blue */
-  color: #f8fafc;            /* Hardcoded White */
-  font-family: sans-serif;
-  margin: 0;
-  padding: 0;
-}
-
+/* 3. Your Custom Utilities */
 @layer utilities {
   .border-border {
     border-color: #334155;
   }
+  
+  /* Adding your custom waste colors as utility classes */
+  .bg-waste-500 { background-color: #10b981; }
+  .text-waste-500 { color: #10b981; }
 }
